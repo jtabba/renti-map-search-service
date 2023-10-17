@@ -1,18 +1,35 @@
 package propertiesServiceV1
 
 import (
+	dbClient "back-end/mapSearchService/src/database/v2-Psql"
 	propertyScraperBase "back-end/mapSearchService/src/scraper"
 	propertyTypes "back-end/mapSearchService/src/types"
+	"fmt"
 
-	// envHelper "back-end/mapSearchService/env"
+	// envHelper "back-end/mapSearchService/env" OS.GETENV????
 	// "fmt"
 	"net/url"
+	// _ "github.com/lib/pq"
 )
 
-
+// check database stale time
+// if stale scrape all new data
+// else check
+// IDEA - set geocode on the suburb entry then query nearby areas by proximity
 
 func GetFilteredProperties(filterOptions url.Values) *[]propertyTypes.Property {
-	// db := dbClient.Connect()
+	db := dbClient.Connect()
+	
+	insertTest := `INSERT INTO SuburbsTest ("name") VALUES ($1)`
+	// geo := propertyTypes.GeoJSON{ Type: "Point", Coordinates: []float64{-32.443345, 31.323455}}
+	// geoCode := propertyTypes.Geocode{ Lat: -32.443345, Lng: 31.323455 }
+
+	_, e := db.Exec(insertTest, "BELMORE"); if e != nil {
+		fmt.Println(e)
+	}
+
+	fmt.Println("Added 1 record")
+
 	// dbName := envHelper.GetEnvVar("PROP_DB")
 	// collectionName := envHelper.GetEnvVar("PROP_COLLECTION")
 	// collection := db.Database(dbName).Collection(collectionName)

@@ -1,0 +1,7 @@
+
+.env
+src/scraper/exampleScrape
+
+# Build
+tmp
+.air.toml

@@ -24,11 +24,7 @@ This will:
 
 1. Grab all suburbs within the search radius from the `suburbs` table
 2. Check each suburb for existing/unexpired listing data from the cache
-3. If the listings exist/are unexpired then they will be retireved from the database
-
-OR
-
-If the listings do not exist they will be scraped, formatted and saved in the database with a record saved in the cache 4. Response is sent to FE
+3. If the listings exist/are unexpired then they will be retireved from the database OR if the listings do not exist they will be scraped, formatted and saved in the database with a record saved in the cache 4. Response is sent to FE
 
 Suburbs (`belmore-nsw-2192` in this example) can be substituted for any suburb Australia wide using the `suburb-state-postcode` format.
 

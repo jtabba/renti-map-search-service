@@ -1,6 +1,6 @@
-FROM postgres
+FROM postgis/postgis
 ENV POSTGRES_PASSWORD docker
-ENV POSTGRES_DB map_search_listings
+# ENV POSTGRES_DB renti_db
 # COPY map_search_listings.sql /docker-entrypoint-initdb.d/
 
 

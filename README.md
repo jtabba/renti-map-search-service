@@ -6,15 +6,28 @@
 
 ## Running the database
 
-Before starting you may choose to restore with a dump file (not required - the scraper will deal with non-exisent data)
+The back end uses a PostGIS image to support geometry data. Before starting you may choose to restore with a dump file (not required - the scraper will deal with non-exisent data)
 
-1. Create db and port map - `docker run --name renti-postgres -e POSTGRES_PASSWORD=docker -d -p 5436:5432 postgres
-`
+1. Create and run image `docker run --name renti-database -p 5438:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=docker -d postgis/postgis`
+2. Get container ID `docker ps`
+3. docker exec -it <--ID--> psql -U postgres
+4. Create database `renti_db`
+5. Connect to db (\c renti_db(?)) and `CREATE EXTENSION Postgis;`
+
+-------OLD--------
+
+1. Create db and port map - `docker run --name renti-db -e POSTGRES_PASSWORD=docker -d -p 5436:5432 postgis/postgis`
 2. Build image - `docker build -t renti-db ./`
-3. Run container - `docker run -d --name renti-db-container -p 5436:5432 renti-db`
-4. Connect via `psql -h localhost -p 5436 -U postgres -d map_search_listings`
+3. Run container - `docker run -d --name renti-container -p 5436:5432 renti-db`
+4. Connect via `psql -h localhost -p 5436 -U postgres -d renti-db`
 
-If that fails go here https://dev.to/andre347/how-to-easily-create-a-postgres-database-in-docker-4moj
+For PostGIS
+https://trevorstanley.medium.com/setup-postgresql-with-postgis-on-docker-8801637a766c
+https://registry.hub.docker.com/r/postgis/postgis/ for PostGis
+If that fails go here https://dev.to/andre347/
+
+Raw Postgres + use `brew install postgis` > install in db
+how-to-easily-create-a-postgres-database-in-docker-4moj
 
 ## Using the endpoints
 

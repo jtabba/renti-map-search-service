@@ -80,5 +80,9 @@ func createScrapeUrl(dataAccessUrl string, filterOptions url.Values) string {
 		dataAccessUrl += "&bathrooms=" + filterOptions["bathrooms"][0]
 	}
 
+	if(filterOptions["parking"] != nil) {
+		dataAccessUrl += "&parking=" + filterOptions["parking"][0]
+	}
+
 	return dataAccessUrl
 }

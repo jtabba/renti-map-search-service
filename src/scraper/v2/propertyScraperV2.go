@@ -1,7 +1,7 @@
 package propertyScraperv2
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 
 	requests "back-end/mapSearchService/src/requests"
@@ -16,7 +16,7 @@ func ScrapeInParallel(pagesToScrape []string, collector *colly.Collector) *[]pro
 	properties := []propertyTypes.Property{}
 
 	collector.OnRequest(func(request *colly.Request) {
-		fmt.Println("Scraping: ", request.URL.String())
+		// fmt.Println("Scraping: ", request.URL.String())
 	})
 
 	collector.OnError(func(_ *colly.Response, err error) {
@@ -27,6 +27,7 @@ func ScrapeInParallel(pagesToScrape []string, collector *colly.Collector) *[]pro
 		rawListingData := requests.FormatJSON([]byte(element.Text))
 		formattedListingData := rawListingData["props"].(map[string]interface{})["pageProps"].(map[string]interface{})["componentProps"].(map[string]interface{})["listingsMap"]
 
+		// fmt.Println(formattedListingData)
 		for _, listing := range formattedListingData.(map[string]interface{}) {
 			inspectionOpenTime := listing.(map[string]interface{})["listingModel"].(map[string]interface{})["inspection"].(map[string]interface{})["openTime"]
 
@@ -76,7 +77,7 @@ func ScrapeInParallel(pagesToScrape []string, collector *colly.Collector) *[]pro
 
 			properties = append(properties, property)
 
- 			fmt.Println("Scraped successfully")
+ 			// fmt.Println("Scraped successfully")
 		}
 	})
 		

@@ -26,6 +26,7 @@ type Property struct {
 	Beds  				float64       	`json:"beds"`
 	Parking 			float64       	`json:"parking"`
 	Agency 				map[string]interface{} 		`json:"agency"`
+	SuburbId 			int 		`json:"suburb_id"`
 	// Size	  			uint       	`json:"size"`
 	// Utilities 			[]string  	`json:"utilities"`
 	WeeklyPrice 		string     	`json:"weekly_price"`

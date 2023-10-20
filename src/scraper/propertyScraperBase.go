@@ -70,7 +70,8 @@ func createScrapeUrl(dataAccessUrl string, filterOptions url.Values) string {
 		panic("No suburb provided - suburb is required for search")
 	}
 
-	dataAccessUrl += "?excludedeposittaken=1"
+	// Don't include rented/sold properties AND only search for properties which match the exact suburb
+	dataAccessUrl += "?excludedeposittaken=1&ssubs=0"
 
 	if(filterOptions["bedrooms"] != nil) {
 		dataAccessUrl += "&bedrooms=" + filterOptions["bedrooms"][0]

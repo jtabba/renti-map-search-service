@@ -14,9 +14,10 @@ type ScrapedSuburbsCacheType struct {
 }
 
 type ScrapedSuburb struct {
-	ID string `json:"id"`
-	SuburbName string `json:"suburbName"`
-	SuburbPostcode string `json:"suburbPostcode"`
+	ID 				string 		`json:"id"`
+	DatabaseId 		int 		`json:"databaseId"`
+	SuburbName 		string 		`json:"suburbName"`
+	SuburbPostcode 	string 		`json:"suburbPostcode"`
 }
 
 const (

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
+	"strings"
 
 	envHelper "back-end/mapSearchService/env"
 	propertyScraperv2 "back-end/mapSearchService/src/scraper/v2"
@@ -23,13 +24,13 @@ var userAgents []string = []string{
 }
 
 
-func InitialiseScraper(filterOptions url.Values) *[]propertyTypes.Property {
+func InitialiseScraper(filterOptions url.Values, suburbsToScrape []string) *[]propertyTypes.Property {
 	if(DATA_ACCESS_URL == "") {
 		panic("Data access URL not provided")
 	}
 
 	fmt.Println("Creating scrape urls...")
-	scrapeUrl := createScrapeUrl(DATA_ACCESS_URL, filterOptions)
+	scrapeUrl := createScrapeUrl(DATA_ACCESS_URL, filterOptions, suburbsToScrape)
 	pagesToScrape := createScraperQueue(scrapeUrl)
 	
 	fmt.Println("Initialising scraper...")
@@ -57,7 +58,7 @@ func createScraperQueue(url string) []string {
 	return pagesToScrape
 }
 
-func createScrapeUrl(dataAccessUrl string, filterOptions url.Values) string {
+func createScrapeUrl(dataAccessUrl string, filterOptions url.Values, suburbsToScrape []string) string {
 	if(filterOptions["type"] != nil) {
 		dataAccessUrl += filterOptions["type"][0] + "/"
 	} else {
@@ -65,25 +66,27 @@ func createScrapeUrl(dataAccessUrl string, filterOptions url.Values) string {
 	}
 
 	if(filterOptions["suburb"] != nil) {
-		dataAccessUrl += filterOptions["suburb"][0] + "/"
+		dataAccessUrl += "?suburb=" + strings.Join(suburbsToScrape, ",")
 	} else {
 		panic("No suburb provided - suburb is required for search")
 	}
 
 	// Don't include rented/sold properties AND only search for properties which match the exact suburb
-	dataAccessUrl += "?excludedeposittaken=1&ssubs=0"
-
+	
 	if(filterOptions["bedrooms"] != nil) {
 		dataAccessUrl += "&bedrooms=" + filterOptions["bedrooms"][0]
 	}
-
+	
 	if(filterOptions["bathrooms"] != nil) {
 		dataAccessUrl += "&bathrooms=" + filterOptions["bathrooms"][0]
 	}
-
+	
 	if(filterOptions["parking"] != nil) {
 		dataAccessUrl += "&parking=" + filterOptions["parking"][0]
 	}
 
+	dataAccessUrl += "&excludedeposittaken=1&ssubs=0"
+
+	fmt.Println("Scrape URL: ", dataAccessUrl)
 	return dataAccessUrl
 }

@@ -1,4 +1,4 @@
-CREATE TABLE Suburbs (
+CREATE TABLE aus_suburbs (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     state VARCHAR(255) NOT NULL,

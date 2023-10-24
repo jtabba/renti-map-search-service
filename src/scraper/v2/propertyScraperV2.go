@@ -2,13 +2,15 @@ package propertyScraperv2
 
 import (
 	// "fmt"
+	// "encoding/json"
+	"fmt"
 	"log"
 
 	requests "back-end/mapSearchService/src/requests"
 	propertyTypes "back-end/mapSearchService/src/types"
 
 	"github.com/gocolly/colly/v2"
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
 )
 
 
@@ -45,24 +47,29 @@ func ScrapeInParallel(pagesToScrape []string, collector *colly.Collector) *[]pro
 				parking = 0.0
 			}
 
-			geocode := propertyTypes.Geocode{
-				Lat: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["lat"].(float64),
-				Lng: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["lng"].(float64),
+			geocode := map[string]interface{}{
+				"lat": listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["lat"].(float64),
+				"lng": listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["lng"].(float64),
+			}
+			// geocodeJson, err := json.Marshal(geocode)
+
+			// if(err != nil) {
+			// 	fmt.Println(err)
+			// }
+
+			images := listing.(map[string]interface{})["listingModel"].(map[string]interface{})["images"].([]interface {})
+			imagesSlice := make([]string, len(images))
+			for i, v := range images {
+				imagesSlice[i] = v.(string) // Type assertion to convert each element to string
 			}
 
 			property := propertyTypes.Property{
 				WeeklyPrice: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["price"].(string),
 				InspectionOpenTime: inspectionOpenTime.(string),
 				InspectionCloseTime: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["inspection"].(map[string]interface{})["closeTime"].(string),
-				ID: uuid.New(),
 				Geocode: geocode,
-				Location: propertyTypes.GeoJSON{
-					Type: "Point",
-					Coordinates: []float64{
-						geocode.Lng, geocode.Lat, 
-					},
-				},
-				Images: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["images"].([]interface {}),
+				Geolocation: fmt.Sprintf("POINT(%v %v)", geocode["lng"], geocode["lat"]),
+				Images: imagesSlice,
 				Address: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["street"].(string),
 				Suburb: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["suburb"].(string),
 				State: listing.(map[string]interface{})["listingModel"].(map[string]interface{})["address"].(map[string]interface{})["state"].(string),

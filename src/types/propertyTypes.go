@@ -1,9 +1,5 @@
 package propertyTypes
 
-import (
-	"github.com/google/uuid"
-)
-
 // type GeocodeData struct {
 // 	FormattedAddress string `json:"formattedAddress"`
 // 	Latitude		 string `json:"latitude"`
@@ -19,9 +15,10 @@ import (
 // }
 
 type Property struct {
-	Geocode 			Geocode		`json:"geocode"`
-	Location 			GeoJSON 	`json:"location"`
-	Images  			[]interface {}    `json:"images"`
+	Geocode 			map[string]interface{} 			`json:"geocode"`
+	Geolocation 			string 	`json:"geolocation"`
+	// Geoocation 			GeoJSON 	`json:"location"`
+	Images  			[]string    `json:"images"`
 	Baths 				float64       	`json:"baths"`
 	Beds  				float64       	`json:"beds"`
 	Parking 			float64       	`json:"parking"`
@@ -30,7 +27,7 @@ type Property struct {
 	// Size	  			uint       	`json:"size"`
 	// Utilities 			[]string  	`json:"utilities"`
 	WeeklyPrice 		string     	`json:"weekly_price"`
-	ID					uuid.UUID    	`json:"id"`
+	ID					string    	`json:"id"`
 	Address 			string 		`json:"address"`
 	Suburb 				string 		`json:"suburb"`
 	// City  				string    	`json:"city"`

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/url"
-	"strings"
 
 	envHelper "back-end/mapSearchService/env"
 	propertyScraperv2 "back-end/mapSearchService/src/scraper/v2"
@@ -30,8 +29,8 @@ func InitialiseScraper(filterOptions url.Values, suburbsToScrape []string) *[]pr
 	}
 
 	fmt.Println("Creating scrape urls...")
-	scrapeUrl := createScrapeUrl(DATA_ACCESS_URL, filterOptions, suburbsToScrape)
-	pagesToScrape := createScraperQueue(scrapeUrl)
+	pagesToScrape := createScrapeUrls(DATA_ACCESS_URL, filterOptions, suburbsToScrape)
+	// pagesToScrape := createScraperQueue(scrapeUrl)
 	
 	fmt.Println("Initialising scraper...")
 	collector := colly.NewCollector(colly.Async(true))
@@ -48,45 +47,51 @@ func InitialiseScraper(filterOptions url.Values, suburbsToScrape []string) *[]pr
 	return properties
 }
 
-func createScraperQueue(url string) []string {
+// func createScraperQueue(url string) []string {
+// 	pagesToScrape := []string{}
+
+// 	for i := 0; i < pagesToScrapeCount; i++ {
+// 		pagesToScrape = append(pagesToScrape, fmt.Sprintf(`%s&page=%v`, url, i + 1))
+// 	}
+
+// 	return pagesToScrape
+// }
+
+func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToScrape []string) []string {
 	pagesToScrape := []string{}
 
-	for i := 0; i < pagesToScrapeCount; i++ {
-		pagesToScrape = append(pagesToScrape, fmt.Sprintf(`%s&page=%v`, url, i + 1))
+	for _, suburb := range(suburbsToScrape) {
+		processedUrl := dataAccessUrl
+
+		if(filterOptions["type"] != nil) {
+			processedUrl += filterOptions["type"][0] + "/"
+		} else {
+			panic("No type provided - type (rent or buy) is required for search")
+		}
+
+		if(filterOptions["suburb"] != nil) {
+			processedUrl += suburb + "/"
+		} else {
+			panic("No suburb provided - suburb is required for search")
+		}
+
+		// Don't include rented/sold properties AND only search for properties which match the exact suburb
+		processedUrl += "?excludedeposittaken=1&ssubs=0"
+
+		if(filterOptions["bedrooms"] != nil) {
+			processedUrl += "&bedrooms=" + filterOptions["bedrooms"][0]
+		}
+
+		if(filterOptions["bathrooms"] != nil) {
+			processedUrl += "&bathrooms=" + filterOptions["bathrooms"][0]
+		}
+
+		if(filterOptions["parking"] != nil) {
+			processedUrl += "&parking=" + filterOptions["parking"][0]
+		}
+
+		pagesToScrape = append(pagesToScrape, processedUrl)
 	}
 
 	return pagesToScrape
-}
-
-func createScrapeUrl(dataAccessUrl string, filterOptions url.Values, suburbsToScrape []string) string {
-	if(filterOptions["type"] != nil) {
-		dataAccessUrl += filterOptions["type"][0] + "/"
-	} else {
-		panic("No type provided - type (rent or buy) is required for search")
-	}
-
-	if(filterOptions["suburb"] != nil) {
-		dataAccessUrl += "?suburb=" + strings.Join(suburbsToScrape, ",")
-	} else {
-		panic("No suburb provided - suburb is required for search")
-	}
-
-	// Don't include rented/sold properties AND only search for properties which match the exact suburb
-	
-	if(filterOptions["bedrooms"] != nil) {
-		dataAccessUrl += "&bedrooms=" + filterOptions["bedrooms"][0]
-	}
-	
-	if(filterOptions["bathrooms"] != nil) {
-		dataAccessUrl += "&bathrooms=" + filterOptions["bathrooms"][0]
-	}
-	
-	if(filterOptions["parking"] != nil) {
-		dataAccessUrl += "&parking=" + filterOptions["parking"][0]
-	}
-
-	dataAccessUrl += "&excludedeposittaken=1&ssubs=0"
-
-	fmt.Println("Scrape URL: ", dataAccessUrl)
-	return dataAccessUrl
 }

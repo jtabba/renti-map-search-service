@@ -14,8 +14,7 @@ func main() {
 
 	mapSearchApiV1 := router.Group("/api/v1")
 	{
-		mapSearchApiV1.GET("/find-properties", propertiesControllerV1.GetMultipleProperties)
-		// search list of existing cities
+		mapSearchApiV1.GET("/find-properties", propertiesControllerV1.GetScheduledListings)
 	}
 
 	router.Run(":3001")

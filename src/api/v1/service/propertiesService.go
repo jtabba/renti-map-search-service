@@ -1,56 +1,19 @@
 package propertiesServiceV1
 
 import (
-	"back-end/mapSearchService/src/api/v1/middleware"
-	dbClient "back-end/mapSearchService/src/database/v2-Psql"
-	"back-end/mapSearchService/src/requests"
-	propertyScraperBase "back-end/mapSearchService/src/scraper"
-	propertyTypes "back-end/mapSearchService/src/types"
 	"encoding/json"
 	"fmt"
-
 	"strings"
 
-	"net/url"
+	middleware "back-end/mapSearchService/src/api/v1/middleware"
+	dbClient "back-end/mapSearchService/src/database/v2-Psql"
+	propertyTypes "back-end/mapSearchService/src/types"
+	utilities "back-end/mapSearchService/src/utilities"
 
 	"github.com/lib/pq"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
-
-// check database stale time
-// if stale scrape all new data
-// else check
-// IDEA - set geocode on the suburb entry then query nearby areas by proximity
-type Suburb struct {
-	Id 			int 		`json:"id"`
-	Name 		string 		`json:"name"`
-	State 		string 		`json:"state"`
-	Postcode 	int 		`json:"postcode"`
-	Geolocation string 		`json:"geolocation"`
-	Geocode 	string 		`json:"geocode"`
-}
-
-func GetFilteredProperties(filterOptions url.Values) *[]propertyTypes.Property {
-	scrapedSububurbsIds, suburbsToScrape := separateListingsInDb(filterOptions["suburb"][0])
-	properties := []propertyTypes.Property{}
-	
-	if(len(*suburbsToScrape) > 0) {
-		fmt.Println("Scraping: ", suburbsToScrape)
-		suburbListings := propertyScraperBase.InitialiseScraper(filterOptions, *suburbsToScrape)
-		
-		properties = append(properties, *suburbListings...)
-
-		insertScrapedListingsIntoDb(&properties)
-	}
-
-	if(len(*scrapedSububurbsIds) > 0) {
-		listingsInDatabase := getListingsInDb(scrapedSububurbsIds)
-		properties = append(properties, *listingsInDatabase...) 
-	}
-
-	return &properties
-}
 
 func getSuburbsInSearchRadius(searchSuburbSlice []string) *[]interface{} {
 	db := dbClient.Connect()
@@ -63,11 +26,12 @@ func getSuburbsInSearchRadius(searchSuburbSlice []string) *[]interface{} {
 		Upper(language.Und, cases.NoLower).
 		String(strings.Join(
 			searchSuburbSlice[:len(searchSuburbSlice) - 2], 
-			" ",
+			"-",
 		))
 	searchPostcode := searchSuburbSlice[len(searchSuburbSlice) - 1:][0]
 
-	fmt.Println(searchSuburb, searchState, searchPostcode)
+	fmt.Println(searchSuburb,)
+
 	selectSuburbsInRadiusQuery := `
 		SELECT id, suburb, state, postcode 
 		FROM aus_suburbs 
@@ -79,6 +43,7 @@ func getSuburbsInSearchRadius(searchSuburbSlice []string) *[]interface{} {
 			), 2500
 		)
 	` 
+
 	rows, e := db.Query(selectSuburbsInRadiusQuery, searchSuburb, searchState, searchPostcode);
 	defer rows.Close() 
 	
@@ -104,55 +69,40 @@ func getSuburbsInSearchRadius(searchSuburbSlice []string) *[]interface{} {
 	return &suburbsInSearchRadius
 }
 
-func separateListingsInDb(suburb string) (*[]float64, *[]string) {
+func SeparateListingsInDb(suburb string) (*[]float64, *[]interface{}) {
 	searchSuburbSlice := strings.Split(suburb, "-")
 	suburbsInSearchRadius := getSuburbsInSearchRadius(searchSuburbSlice)
-	scrapedSububurbsIds := []float64{}
-	suburbsToScrape := []string{}
+	scrapedSububurbsIds, suburbsToScrape := []float64{}, []interface{}{}
 
 	for _, suburb := range *suburbsInSearchRadius {
-		suburbName := suburb.([]interface{})[1].(string)
-		suburbState := suburb.([]interface{})[2].(string)
-		suburbPostcode := suburb.([]interface{})[3].(string)
-		cacheId := fmt.Sprintf("%s-%s", suburbName, suburbPostcode)
-
-		res, found := middleware.CheckCache(cacheId)
+		suburbName, suburbState, suburbPostcode := 
+			suburb.([]interface{})[1].(string), 
+			suburb.([]interface{})[2].(string), 
+			suburb.([]interface{})[3].(string)
+		cacheId := fmt.Sprintf("%s-%s-%s", suburbName, suburbState, suburbPostcode)
+		cachedSuburb, found := middleware.CheckCache(cacheId)
 
 		if(found) {
-			cachedData := requests.FormatJSON(res)
-
-			// fmt.Println("Found in cache: ", cachedData)
-
-			scrapedSububurbsIds = append(scrapedSububurbsIds, cachedData["databaseId"].(float64))
-
-
-			// query db where suburb_id = suburb ID
-			// select * from listings* where suburb_id IN (val1, val2 ...)	
-			// this is a loop - build query here and then select elsewhere all at once
+			cachedSuburb := utilities.FormatJSON(cachedSuburb)
+			scrapedSububurbsIds = append(scrapedSububurbsIds, cachedSuburb["databaseId"].(float64))
 		} else {
-			suburbQueryString := fmt.Sprintf("%s-%s-%s", suburbName, suburbState, suburbPostcode)
-			suburbsToScrape = append(suburbsToScrape, suburbQueryString)
-			// CREATE QUERY STRING FOR SEARCH (SUBURB-STATE-POSTCODE, ...)
-			// Scrape all as one in single request, partitioned and scraped as 1
-			// will need to do outside of loop
-
-			// this will have to move until data is actually scraped and sent to db vv
-			scrapedSuburb := middleware.ScrapedSuburb{
-				ID: cacheId,
-				DatabaseId: suburb.([]interface{})[0].(int),
-				SuburbName: suburbName,
-				SuburbPostcode: suburbPostcode,
+			suburbData := []interface{}{
+				cacheId,
+				middleware.ScrapedSuburb{
+					ID: cacheId,
+					DatabaseId: suburb.([]interface{})[0].(int),
+					SuburbName: suburbName,
+					SuburbPostcode: suburbPostcode,
+				},
 			}
-			
-			middleware.SetCache(cacheId, scrapedSuburb)
+			suburbsToScrape = append(suburbsToScrape, suburbData)
 		}
 	}
 
- 	fmt.Println("burbs: ",suburbsToScrape)
 	return &scrapedSububurbsIds, &suburbsToScrape
 }
 
-func insertScrapedListingsIntoDb(listings *[]propertyTypes.Property) {
+func InsertScrapedListingsIntoDb(listings *[]propertyTypes.Property) {
 	db := dbClient.Connect()
 	defer db.Close()
 
@@ -221,7 +171,7 @@ func insertScrapedListingsIntoDb(listings *[]propertyTypes.Property) {
 	fmt.Printf("Added %v records \n", len(*listings))
 }
 
-func getListingsInDb(suburbsInDatabase *[]float64) *[]propertyTypes.Property {
+func GetListingsInDb(suburbsInDatabase *[]float64) *[]propertyTypes.Property {
 	db := dbClient.Connect()
 	defer db.Close()
 
@@ -265,15 +215,14 @@ func getListingsInDb(suburbsInDatabase *[]float64) *[]propertyTypes.Property {
 			&listing.Country,
 			&listing.InspectionOpenTime,
 			&listing.InspectionCloseTime,
-			&listing.PropertyType,
+			&listing.PropertyType, 
 		); err != nil {
 			fmt.Println(err)
 		} else {
 			listing.Images = []string(imagesBytes)
-			listing.Agency = requests.FormatJSON(agencyBytes)
+			listing.Agency = utilities.FormatJSON(agencyBytes)
 			listing.Geolocation = string(geolocationBytes)
-			listing.Geocode = requests.FormatJSON(geocodeBytes)
-
+			listing.Geocode = utilities.FormatJSON(geocodeBytes)
 
 			suburbsInSearchRadius = append(suburbsInSearchRadius, listing)
 		}

@@ -8,6 +8,9 @@ import (
 )
 
 const (
+	// IF RUNNING IN DOCKER CONTAINER
+	// host    	= "renti-db"
+	// port   	 	= 5432
 	host    	= "localhost"
 	port   	 	= 5438
 	user   		= "postgres"

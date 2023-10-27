@@ -5,3 +5,5 @@ src/scraper/exampleScrape
 # Build
 tmp
 .air.toml
+renti-dump.sql
+mapSearchService

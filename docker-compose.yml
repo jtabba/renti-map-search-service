@@ -1,0 +1,49 @@
+version: "3.7"
+
+services:
+    renti-db:
+        # Disable if running on Apple M1/M2 (amd64 - aka NOT Intel)
+        platform: linux/arm64
+        container_name: map-search-service-database
+        hostname: renti-db
+        build:
+            context: .
+            dockerfile: Dockerfile-DB
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: docker
+            POSTGRES_DB: renti_db
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        ports:
+            - 5438:5432
+        networks:
+            - renti-network
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        restart: on-failure
+    # renti-server:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile
+    #     container_name: map-search-service
+    #     hostname: map-search-service
+    #     networks:
+    #         - renti-network
+    #     ports:
+    #         - "8080:8080"
+    #     depends_on:
+    #         - renti-db
+    #     deploy:
+    #         restart_policy:
+    #             condition: on-failure
+
+volumes:
+    pgdata:
+
+networks:
+    renti-network:
+        driver: bridge

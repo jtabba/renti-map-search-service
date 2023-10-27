@@ -21,12 +21,6 @@ func ScrapeInParallel(pagesToScrape []interface{}, collector *colly.Collector) *
 		log.Println("Failed to scrape: ", err)
 	})
 
-	collector.OnHTML("css-vwl6ts-", func(element *colly.HTMLElement) {
-		if(element.Text == "Oops...") {
-			fmt.Println("Oops...")
-		}
-	})
-
 	collector.OnHTML("#__NEXT_DATA__", func(element *colly.HTMLElement) {
 		rawListingData := utilities.FormatJSON([]byte(element.Text))
 		formattedListingData := rawListingData["props"].(map[string]interface{})["pageProps"].(map[string]interface{})["componentProps"].(map[string]interface{})["listingsMap"]

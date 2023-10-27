@@ -17,5 +17,5 @@ func main() {
 		mapSearchApiV1.GET("/find-properties", propertiesControllerV1.GetScheduledListings)
 	}
 
-	router.Run(":3001")
+	router.Run(":8080")
 }

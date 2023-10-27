@@ -1,4 +1,4 @@
-package requests
+package utilities
 
 import (
 	envHelper "back-end/mapSearchService/env"

@@ -1,8 +1,12 @@
-FROM postgis/postgis
-ENV POSTGRES_PASSWORD docker
-# ENV POSTGRES_DB renti_db
-# COPY map_search_listings.sql /docker-entrypoint-initdb.d/
+FROM golang:1.21
 
+WORKDIR /app
 
-# COMMANDS
-# view db: psql -h localhost -p 5436 -U postgres -d map_search_listings
+ADD . /app
+RUN go mod download
+
+RUN go build -o /renti-backend
+
+EXPOSE 8080
+
+CMD [ "/renti-backend" ]

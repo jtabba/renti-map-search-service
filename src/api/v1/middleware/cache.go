@@ -46,7 +46,6 @@ func (cache *ScrapedSuburbsCacheType) read(id string) (item []byte, found bool) 
 		return res, true
 	}
 
-	fmt.Println("Not found in cache: ", id)
 	return nil, false
 }
 

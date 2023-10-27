@@ -5,6 +5,7 @@ I tasked myself with making an application which uses real-time property data to
 This service was set up to retrieve and send data as quickly as possible, and hence Go was chosen to create it (which I had to learn from scratch).
 
 I used the opportunity to learn more about SQL, working with geometry data and Docker containerisation. The pimrary technologies used are:
+
 • PSQL with a Postgis database (no ORM was utilised for increased performance and to force me to manually write queries)
 • Docker
 • Go with Gin as the HTTP framework of choice due to its performance benefits over the native Go HTTP library

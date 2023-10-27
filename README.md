@@ -6,11 +6,11 @@ This service was set up to retrieve and send data as quickly as possible, and he
 
 I used the opportunity to learn more about SQL, working with geometry data and Docker containerisation. The pimrary technologies used are:
 
-• PSQL with a Postgis database (no ORM was utilised for increased performance and to force me to manually write queries)
-• Docker
-• Go with Gin as the HTTP framework of choice due to its performance benefits over the native Go HTTP library
-• Go Colly for web scraping
-• Air for hot reloading
+    • PSQL with a Postgis database (no ORM was utilised for increased performance and to force me to manually write queries)
+    • Docker
+    • Go with Gin as the HTTP framework of choice due to its performance benefits over the native Go HTTP library
+    • Go Colly for web scraping
+    • Air for hot reloading
 
 ### Functionality
 

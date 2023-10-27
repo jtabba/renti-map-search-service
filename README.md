@@ -1,3 +1,21 @@
+## Overview
+
+I tasked myself with making an application which uses real-time property data to highlight inspection times of property listings.
+
+This service was set up to retrieve and send data as quickly as possible, and hence Go was chosen to create it (which I had to learn from scratch).
+
+I used the opportunity to learn more about SQL, working with geometry data and Docker containerisation. The pimrary technologies used are:
+
+    - PSQL with a Postgis database (no ORM was utilised for increased performance and to force me to manually write queries)
+    - Docker
+    - Go with Gin as the HTTP framework of choice due to its performance benefits over the native Go HTTP library
+    - Go Colly for web scraping
+    - Air for hot reloading
+
+### Functionality
+
+The service works by - Checking the database for suburbs in the search radius - Checking the cache for existing listings in the database of suburbs within said radius - Scraping + saving what doesn't exist - Sending the data to the front-end
+
 ## Running the server
 
 The application uses `Golang 1.21` but is functional with `v1.19 or greater`
@@ -33,14 +51,13 @@ You will need to acquire a copy of the database schema to restore the necessary 
 
 ### Connect to container db
 
-Once restored you can connect to the database container and run a query to confirm the completion of the setup
+Once restored, you can connect to the database container and run a query to confirm the completion of the setup
 
 5. Run `docker compose --env-file /dev/null exec renti-db psql -U postgres -d renti_db`
 6. Once connected to `renti_db#=` run
 
 ```
     SELECT count(id) from aus_suburbs;
-
 ```
 
 Which should output something like

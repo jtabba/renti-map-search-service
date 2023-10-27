@@ -2,9 +2,13 @@
 
 The application uses `Golang 1.21` but is functional with `v1.19 or greater`
 
-1. Download Go v1.19 or greater
+1. Download [Go](https://go.dev/doc/install) v1.19 or greater
 
-[air](https://github.com/cosmtrek/air) is used for hot reloading the server 2. Download `air` 3. `air init` 4. `air` to run the server
+[air](https://github.com/cosmtrek/air) is used for hot reloading the server
+
+2. Download `air`
+3. `air init`
+4. `air` to run the server
 
 By default, the server runs on port `8080`
 

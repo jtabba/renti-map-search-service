@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	envHelper "back-end/mapSearchService/env"
+	"back-end/mapSearchService/src/api/v1/middleware"
 	propertyScraperv2 "back-end/mapSearchService/src/scraper/v2"
 	types "back-end/mapSearchService/src/types"
 
@@ -21,13 +22,13 @@ var userAgents []string = []string{
 	"Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
 }
 
-func InitialiseScraper(filterOptions url.Values, suburbsToScrape map[string]interface{}) *[]types.Property {
+func InitialiseScraper(filterOptions url.Values, suburbsToScrapeData map[string]middleware.ScrapedSuburb) *[]types.Property {
 	if(DATA_ACCESS_URL == "") {
 		panic("Data access URL not provided")
 	}
 
 	fmt.Println("Creating scrape urls...")
-	pagesToScrape := createScrapeUrls(DATA_ACCESS_URL, filterOptions, suburbsToScrape)
+	pagesToScrape := createScrapeUrls(DATA_ACCESS_URL, filterOptions, suburbsToScrapeData)
 	
 	fmt.Println("Initialising scraper...")
 	collector := colly.NewCollector(colly.Async(true))
@@ -38,16 +39,18 @@ func InitialiseScraper(filterOptions url.Values, suburbsToScrape map[string]inte
 	collector.UserAgent = userAgents[randomInt]
 
 	fmt.Println("Scraping...")
-	properties := propertyScraperv2.ScrapeInParallel(pagesToScrape, collector)
+	properties := propertyScraperv2.ScrapeInParallel(suburbsToScrapeData, pagesToScrape, collector)
 	fmt.Printf("\nComplete! Scraped %v properties \n\n", len(*properties))
 
 	return properties
 }
 
-func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToScrape map[string]interface{}) map[string]interface{} {
-	for cacheId, suburbData := range(suburbsToScrape) {
+func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToScrapeData map[string]middleware.ScrapedSuburb) []string {
+	var scrapeUrls []string
+
+	for cacheId, suburbData := range(suburbsToScrapeData) {
 		processedUrl := dataAccessUrl
-		suburbDetails := suburbData.([]interface{})[0].(string)
+		// suburbDetails := suburbData["ID"]
 
 		if(filterOptions["type"] != nil) {
 			processedUrl += filterOptions["type"][0] + "/"
@@ -56,7 +59,7 @@ func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToS
 		}
 
 		if(filterOptions["suburb"] != nil) {
-			processedUrl += suburbDetails + "/"
+			processedUrl += cacheId + "/"
 		} else {
 			panic("No suburb provided - suburb is required for search")
 		}
@@ -76,8 +79,8 @@ func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToS
 			processedUrl += "&parking=" + filterOptions["parking"][0]
 		}
 
-		suburbsToScrape[cacheId].([]interface{})[0] = processedUrl
+		scrapeUrls = append(scrapeUrls, processedUrl)
 	}
 
-	return suburbsToScrape
+	return scrapeUrls
 }

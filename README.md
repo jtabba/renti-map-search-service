@@ -97,6 +97,7 @@ Example: `http://localhost:3001/api/v1/find-properties?type=rent&suburb=belmore-
 -   Suburbs that have no listings are never added to the cache and hence are always attempted to be scraped
     -   May need to create a timer that removes from cache after X time to try again
     -   Once stored in the database, geolocation data is encoded
+-   Searching zetland-nsw-2017 will crash the server
 
 ## OLD INFO
 

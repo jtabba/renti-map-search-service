@@ -6,7 +6,7 @@ import (
 
 	propertiesServiceV1 "back-end/mapSearchService/src/api/v1/service"
 	propertyScraperBase "back-end/mapSearchService/src/scraper"
-	propertyTypes "back-end/mapSearchService/src/types"
+	types "back-end/mapSearchService/src/types"
 
 	"github.com/gin-gonic/gin"
 ) 
@@ -15,7 +15,7 @@ import (
 func GetScheduledListings(context *gin.Context) {
 	reqParams := context.Request.URL.Query()
 	scrapedSububurbsIds, suburbsToScrape := propertiesServiceV1.SeparateListingsInDb(reqParams["suburb"][0])
-	properties := []propertyTypes.Property{}
+	properties := []types.Property{}
 	
 	if(len(*suburbsToScrape) > 0) {
 		fmt.Println("Suburbs to scrape: ", *suburbsToScrape)
@@ -33,4 +33,13 @@ func GetScheduledListings(context *gin.Context) {
 
 	context.JSON(http.StatusOK, properties)
 	properties = nil
+}
+
+func FindSearchQueryMatches(context *gin.Context) {
+	reqParams := context.Request.URL.Query()
+	fmt.Println(reqParams)
+	currentSearchQuery := reqParams["search-query"][0]
+	existingSimilarSuburbs := propertiesServiceV1.GetMatchingSuburbs(currentSearchQuery)
+
+	context.JSON(http.StatusOK, existingSimilarSuburbs)
 }

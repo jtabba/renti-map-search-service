@@ -1,17 +1,17 @@
 package middleware
 
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"time"
+import "fmt"
 
-	"github.com/patrickmn/go-cache"
-)
+// "encoding/json"
+// "fmt"
+// "log"
+// "time"
 
-type ScrapedSuburbsCacheType struct {
-	activeScrapedSuburbs *cache.Cache
-}
+// "github.com/patrickmn/go-cache"
+
+// type ScrapedSuburbsCacheType struct {
+// 	activeScrapedSuburbs *cache.Cache
+// }
 
 type ScrapedSuburb struct {
 	ID 				string 		`json:"id"`
@@ -20,51 +20,83 @@ type ScrapedSuburb struct {
 	SuburbPostcode 	string 		`json:"suburbPostcode"`
 }
 
-const (
-	defaultExpiration = 22 * time.Hour
-	purgeTime = 24 * time.Hour
-)
+var scrapedSuburbsCache map[string]ScrapedSuburb = make(map[string]ScrapedSuburb)
 
-func InitialiseSuburbsCache() *ScrapedSuburbsCacheType {
-	Cache := cache.New(defaultExpiration, purgeTime)
+func UpdateCache(id string, suburb ScrapedSuburb) {
+	cacheRes := checkCache(id)
 
-	return &ScrapedSuburbsCacheType{
-		activeScrapedSuburbs: Cache,
+	if(!cacheRes["found"].(bool)) {
+		fmt.Println("Not found in cache. Adding: ", id, suburb)
+		scrapedSuburbsCache[id] = suburb
+
+		return
 	}
+
+	// fmt.Println("Found in cache. No operation needed. ", scrapedSuburbsCache)
+
+	return
 }
 
-func (cache *ScrapedSuburbsCacheType) read(id string) (item []byte, found bool) {
-	scrapedSuburb, found := cache.activeScrapedSuburbs.Get(id); 
+func checkCache(id string) map[string]interface{} {
+	data, found := scrapedSuburbsCache[id]; 
 	
-	if found {
-		fmt.Println("Found in cache: ", id)
+	if(found) {
+		// fmt.Println("Found in cache: ", id, scrapedSuburbsCache)
+	}
+	
+	return map[string]interface{}{
+		"found": found,
+		"data": data,
+	}
+}
 
-		res, err := json.Marshal(scrapedSuburb.(ScrapedSuburb)); if err != nil {
-			log.Fatal("Error unmarshaling suburb from cache. ID: ", id)
-		}
+func ReadCache(id string) (ScrapedSuburb, bool) {
+	cacheRes := checkCache(id)
+
+	fmt.Println("Read cache: ", cacheRes)
+
+	return cacheRes["data"].(ScrapedSuburb), cacheRes["found"].(bool)
+}
+
+// const (
+// 	defaultExpiration = 22 * time.Hour
+// 	purgeTime = 24 * time.Hour
+// )
+
+// func InitialiseSuburbsCache() *ScrapedSuburbsCacheType {
+// 	Cache := cache.New(defaultExpiration, purgeTime)
+
+// 	return &ScrapedSuburbsCacheType{
+// 		activeScrapedSuburbs: Cache,
+// 	}
+// }
+
+// func (cache *ScrapedSuburbsCacheType) read(id string) (item []byte, found bool) {
+// 	scrapedSuburb, found := cache.activeScrapedSuburbs.Get(id); 
+	
+// 	if found {
+// 		fmt.Println("Found in cache: ", id)
+
+// 		res, err := json.Marshal(scrapedSuburb.(ScrapedSuburb)); if err != nil {
+// 			log.Fatal("Error unmarshaling suburb from cache. ID: ", id)
+// 		}
 		
-		return res, true
-	}
+// 		return res, true
+// 	}
 
-	return nil, false
-}
+// 	return nil, false
+// }
 
-func (suburbsCache *ScrapedSuburbsCacheType) update(id string, suburb ScrapedSuburb) {
-	suburbsCache.activeScrapedSuburbs.Set(id, suburb, cache.DefaultExpiration)
-}
+// func (suburbsCache *ScrapedSuburbsCacheType) update(id string, suburb ScrapedSuburb) {
+// 	suburbsCache.activeScrapedSuburbs.Set(id, suburb, cache.DefaultExpiration)
+// }
 
-func CheckCache(id string) ([]byte, bool) {
-	res, found := scrapedSuburbsCache.read(id)
+// func CheckCache(id string) ([]byte, bool) {
+// 	return scrapedSuburbsCache.read(id)
+// }
 
-	if found {
-		return res, true
-	}
+// func SetCache(id string, suburb ScrapedSuburb) {
+// 	scrapedSuburbsCache.update(id, suburb)
+// }
 
-	return nil, false
-}
-
-func SetCache(id string, suburb ScrapedSuburb) {
-	scrapedSuburbsCache.update(id, suburb)
-}
-
-var scrapedSuburbsCache = InitialiseSuburbsCache()
+// var scrapedSuburbsCache = InitialiseSuburbsCache()

@@ -14,6 +14,7 @@ func main() {
 
 	mapSearchApiV1 := router.Group("/api/v1")
 	{
+		mapSearchApiV1.GET("/find-matching-suburbs", propertiesControllerV1.FindSearchQueryMatches)
 		mapSearchApiV1.GET("/find-properties", propertiesControllerV1.GetScheduledListings)
 	}
 

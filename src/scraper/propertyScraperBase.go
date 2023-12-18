@@ -7,7 +7,7 @@ import (
 
 	envHelper "back-end/mapSearchService/env"
 	propertyScraperv2 "back-end/mapSearchService/src/scraper/v2"
-	propertyTypes "back-end/mapSearchService/src/types"
+	types "back-end/mapSearchService/src/types"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -21,7 +21,7 @@ var userAgents []string = []string{
 	"Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
 }
 
-func InitialiseScraper(filterOptions url.Values, suburbsToScrape []interface{}) *[]propertyTypes.Property {
+func InitialiseScraper(filterOptions url.Values, suburbsToScrape map[string]interface{}) *[]types.Property {
 	if(DATA_ACCESS_URL == "") {
 		panic("Data access URL not provided")
 	}
@@ -44,10 +44,10 @@ func InitialiseScraper(filterOptions url.Values, suburbsToScrape []interface{}) 
 	return properties
 }
 
-func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToScrape []interface{}) []interface{} {
-	for i, suburb := range(suburbsToScrape) {
+func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToScrape map[string]interface{}) map[string]interface{} {
+	for cacheId, suburbData := range(suburbsToScrape) {
 		processedUrl := dataAccessUrl
-		suburbDetails := suburb.([]interface{})[0].(string)
+		suburbDetails := suburbData.([]interface{})[0].(string)
 
 		if(filterOptions["type"] != nil) {
 			processedUrl += filterOptions["type"][0] + "/"
@@ -76,7 +76,7 @@ func createScrapeUrls(dataAccessUrl string, filterOptions url.Values, suburbsToS
 			processedUrl += "&parking=" + filterOptions["parking"][0]
 		}
 
-		suburbsToScrape[i].([]interface{})[0] = processedUrl
+		suburbsToScrape[cacheId].([]interface{})[0] = processedUrl
 	}
 
 	return suburbsToScrape

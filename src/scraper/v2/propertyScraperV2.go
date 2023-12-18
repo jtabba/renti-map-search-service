@@ -6,16 +6,16 @@ import (
 	"strings"
 
 	"back-end/mapSearchService/src/api/v1/middleware"
-	propertyTypes "back-end/mapSearchService/src/types"
+	types "back-end/mapSearchService/src/types"
 	utilities "back-end/mapSearchService/src/utilities"
 
 	"github.com/gocolly/colly/v2"
 )
 
 
-func ScrapeInParallel(pagesToScrape []interface{}, collector *colly.Collector) *[]propertyTypes.Property {
-	properties := []propertyTypes.Property{}
-	var suburbCacheData middleware.ScrapedSuburb
+func ScrapeInParallel(suburbsToScrapeData map[string]middleware.ScrapedSuburb, pagesToScrape []string, collector *colly.Collector) *[]types.Property {
+	properties := []types.Property{}
+	// var suburbCacheData middleware.ScrapedSuburb
 
 	collector.OnError(func(_ *colly.Response, err error) {
 		log.Println("Failed to scrape: ", err)
@@ -38,6 +38,10 @@ func ScrapeInParallel(pagesToScrape []interface{}, collector *colly.Collector) *
 				beds = 0.0
 			}
 
+			baths := listingData["features"].(map[string]interface{})["baths"]; if baths == nil {
+				baths = 0.0
+			}
+
 			parking := listingData["features"].(map[string]interface{})["parking"]; if parking == nil {
 				parking = 0.0
 			}
@@ -56,13 +60,14 @@ func ScrapeInParallel(pagesToScrape []interface{}, collector *colly.Collector) *
 			postcode := listingData["address"].(map[string]interface{})["postcode"].(string)
 			state := listingData["address"].(map[string]interface{})["state"].(string)
 
-			property := propertyTypes.Property{
+			property := types.Property{
 				Suburb: suburb,
 				Postcode: postcode,
 				State: state,
 				Geocode: geocode,
 				Images: imagesSlice,
 				Beds: beds.(float64),
+				Baths: baths.(float64),
 				Parking: parking.(float64),
 				Country: "Australia",
 				WeeklyPrice: listingData["price"].(string),
@@ -70,20 +75,22 @@ func ScrapeInParallel(pagesToScrape []interface{}, collector *colly.Collector) *
 				Agency: listingData["branding"].(map[string]interface{}),
 				Geolocation: fmt.Sprintf("POINT(%v %v)", geocode["lng"], geocode["lat"]),
 				Address: listingData["address"].(map[string]interface{})["street"].(string),
-				Baths: listingData["features"].(map[string]interface{})["baths"].(float64),
 				InspectionCloseTime: listingData["inspection"].(map[string]interface{})["closeTime"].(string),
 				PropertyType: listingData["features"].(map[string]interface{})["propertyTypeFormatted"].(string),
 			}
 
 			properties = append(properties, property)
 			cacheId := fmt.Sprintf("%s-%s-%s", suburb, state, postcode)
-			middleware.SetCache(cacheId, suburbCacheData)
+			cacheData := suburbsToScrapeData[cacheId]
+			// fmt.Println("Cache ID: ", cacheId, suburbCacheData)
+			middleware.UpdateCache(cacheId, cacheData)
 		}
 	})
 		
 	for _, pageToScrape := range pagesToScrape {
-		suburbCacheData = pageToScrape.([]interface{})[1].(middleware.ScrapedSuburb) 
-		collector.Visit(pageToScrape.([]interface{})[0].(string))
+		// suburbCacheData = pageToScrape.([]interface{})[1].(middleware.ScrapedSuburb) 
+		// fmt.Println("Suburbs cache data: ", suburbCacheData)
+		collector.Visit(pageToScrape)
 	}
 	
 	collector.Wait()

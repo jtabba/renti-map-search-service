@@ -1,63 +1,31 @@
-package propertyTypes
-
-// type GeocodeData struct {
-// 	FormattedAddress string `json:"formattedAddress"`
-// 	Latitude		 string `json:"latitude"`
-// 	Longitude		 string `json:"longitude"`
-// 	Country			 string `json:"country"`
-// 	City 			 string `json:"city"`
-// 	StateCode		 string `json:"stateCode"`
-// 	ZipCode			 string `json:"zipCode"`
-// 	StreetName		 string `json:"streetName"`
-// 	StreetNumber	 string `json:"streetNumber"`
-// 	CountryCode		 string `json:"countryCode"`
-// 	Provider		 string `json:"provider"`
-// }
+package types
 
 type Property struct {
-	Geocode 			map[string]interface{} 			`json:"geocode"`
-	Geolocation 			string 	`json:"geolocation"`
-	// Geoocation 			GeoJSON 	`json:"location"`
-	Images  			[]string    `json:"images"`
-	Baths 				float64       	`json:"baths"`
-	Beds  				float64       	`json:"beds"`
-	Parking 			float64       	`json:"parking"`
-	Agency 				map[string]interface{} 		`json:"agency"`
-	SuburbId 			int 		`json:"suburb_id"`
-	// Size	  			uint       	`json:"size"`
-	// Utilities 			[]string  	`json:"utilities"`
-	WeeklyPrice 		string     	`json:"weekly_price"`
-	ID					string    	`json:"id"`
-	Address 			string 		`json:"address"`
-	Suburb 				string 		`json:"suburb"`
-	// City  				string    	`json:"city"`
-	State  				string    	`json:"state"`
-	Country  			string    	`json:"country"`
-	Postcode  			string    	`json:"postcode"`
-	InspectionOpenTime 		string 		`json:"inspection_open_time"`
-	InspectionCloseTime 	string 		`json:"inspection_close_time"`
-	PropertyType  		string 		`json:"property_type"`
-	// AgentNumber 		string 		`json:"number"`
+	Geocode 				map[string]interface{} 		`json:"geocode"`
+	Geolocation 			string 						`json:"geolocation"`
+	Images  				[]string    				`json:"images"`
+	Baths 					float64       				`json:"baths"`
+	Beds  					float64       				`json:"beds"`
+	Parking 				float64       				`json:"parking"`
+	Agency 					map[string]interface{} 		`json:"agency"`
+	SuburbId 				int 						`json:"suburb_id"`
+	WeeklyPrice 			string      					`json:"weekly_price"`
+	ID						string    					`json:"id"`
+	Address 				string 						`json:"address"`
+	Suburb 					string 						`json:"suburb"`
+	State  					string    					`json:"state"`
+	Country  				string    					`json:"country"`
+	Postcode  				string    					`json:"postcode"`
+	InspectionOpenTime 		string 						`json:"inspection_open_time"`
+	InspectionCloseTime 	string 						`json:"inspection_close_time"`
+	PropertyType  			string 						`json:"property_type"`
 }
 
-type Utilities struct {
-	Baths 			uint       	`json:"baths"`
-	Beds 			uint       	`json:"beds"`
-	Parking 		uint       	`json:"parking"`
-} 
-
-// type Property struct {
-// 	Address 			string 		`json:"address"`;
-// 	InspectionTime 		string 		`json:"inspection_time"`;
-// 	WeeklyPrice 		string    	`json:"weeklyPrice"`
-// }
-
-type GeoJSON struct {
-	Type 			string 			`json:"type"`
-	Coordinates 	[]float64 		`json:"coordinates"`
-}
-
-type Geocode struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+type Suburb struct {
+	ID 						int 						`json:"id"`
+	Suburb 					string 						`json:"suburb"`
+	State  					string    					`json:"state"`
+	Postcode  				string    					`json:"postcode"`
+	Geolocation 			string 						`json:"geolocation"`
+	Geocode 				map[string]interface{} 		`json:"geocode"`
 }

@@ -7,7 +7,7 @@ import (
 
 	middleware "back-end/mapSearchService/src/api/v1/middleware"
 	dbClient "back-end/mapSearchService/src/database/v2-Psql"
-	propertyTypes "back-end/mapSearchService/src/types"
+	types "back-end/mapSearchService/src/types"
 	utilities "back-end/mapSearchService/src/utilities"
 
 	"github.com/lib/pq"
@@ -69,40 +69,42 @@ func getSuburbsInSearchRadius(searchSuburbSlice []string) *[]interface{} {
 	return &suburbsInSearchRadius
 }
 
-func SeparateListingsInDb(suburb string) (*[]float64, *[]interface{}) {
+func SeparateListingsInDb(suburb string) (*[]float64, *map[string]interface{}) {
 	searchSuburbSlice := strings.Split(suburb, "-")
-	suburbsInSearchRadius := getSuburbsInSearchRadius(searchSuburbSlice)
-	scrapedSububurbsIds, suburbsToScrape := []float64{}, []interface{}{}
+	suburbsInSearchRadius := getSuburbsInSearchRadius(searchSuburbSlice) 
+	scrapedSububurbsIds, suburbsToScrape := []float64{}, map[string]interface{}{}
+	fmt.Println("IN RADIUS: ", suburbsInSearchRadius)
 
 	for _, suburb := range *suburbsInSearchRadius {
 		suburbName, suburbState, suburbPostcode := 
-			suburb.([]interface{})[1].(string), 
-			suburb.([]interface{})[2].(string), 
-			suburb.([]interface{})[3].(string)
+		suburb.([]interface{})[1].(string), 
+		suburb.([]interface{})[2].(string), 
+		suburb.([]interface{})[3].(string)
 		cacheId := fmt.Sprintf("%s-%s-%s", suburbName, suburbState, suburbPostcode)
-		cachedSuburb, found := middleware.CheckCache(cacheId)
+		cachedSuburb, found := middleware.ReadCache(cacheId)
+		// fmt.Println("In radius: ", suburb, found, cachedSuburb)
 
-		if(found) {
-			cachedSuburb := utilities.FormatJSON(cachedSuburb)
-			scrapedSububurbsIds = append(scrapedSububurbsIds, cachedSuburb["databaseId"].(float64))
+		if found {
+			// fmt.Println("BEFORE")
+			// cachedSuburb := utilities.FormatJSON(cachedSuburb)
+			scrapedSububurbsIds = append(scrapedSububurbsIds, float64(cachedSuburb.DatabaseId))
+			// fmt.Println("AFTER", scrapedSububurbsIds)
 		} else {
-			suburbData := []interface{}{
-				cacheId,
-				middleware.ScrapedSuburb{
+			suburbData := middleware.ScrapedSuburb{
 					ID: cacheId,
 					DatabaseId: suburb.([]interface{})[0].(int),
 					SuburbName: suburbName,
 					SuburbPostcode: suburbPostcode,
-				},
-			}
-			suburbsToScrape = append(suburbsToScrape, suburbData)
+				}
+			
+			suburbsToScrape[cacheId] = suburbData
 		}
 	}
 
 	return &scrapedSububurbsIds, &suburbsToScrape
 }
 
-func InsertScrapedListingsIntoDb(listings *[]propertyTypes.Property) {
+func InsertScrapedListingsIntoDb(listings *[]types.Property) {
 	db := dbClient.Connect()
 	defer db.Close()
 
@@ -171,27 +173,27 @@ func InsertScrapedListingsIntoDb(listings *[]propertyTypes.Property) {
 	fmt.Printf("Added %v records \n", len(*listings))
 }
 
-func GetListingsInDb(suburbsInDatabase *[]float64) *[]propertyTypes.Property {
+func GetListingsInDb(suburbsInDatabase *[]float64) *[]types.Property {
 	db := dbClient.Connect()
 	defer db.Close()
 
 	selectSuburbsInRadiusQuery := `
-		SELECT * 
+		SELECT *
 		FROM listings 
 		WHERE suburb_id = ANY($1)
 	`
 
-	rows, e := db.Query(selectSuburbsInRadiusQuery, pq.Array(suburbsInDatabase));
+	rows, err := db.Query(selectSuburbsInRadiusQuery, pq.Array(suburbsInDatabase));
 	defer rows.Close()
 	
-	if e != nil {
-		fmt.Println(e)
+	if err != nil {
+		fmt.Println(err)
 	}
 	
-	suburbsInSearchRadius := []propertyTypes.Property{}
+	suburbsInSearchRadius := []types.Property{}
 
 	for rows.Next() {
-		var listing propertyTypes.Property
+		var listing types.Property
 		var imagesBytes pq.StringArray
 		agencyBytes := []byte{}
 		geocodeBytes := []byte{}
